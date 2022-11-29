@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildView() {
     if (connectedDevice != null) {
       return ConnectedDevice(
-        disconnectFromDevice: setConnectedDevice,
+        disconnectFromDevice: disconnectFromDevice,
         device: connectedDevice!,
       );
     } else {

@@ -14,6 +14,8 @@ class ServiceCharacteristic extends StatefulWidget {
 
 class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
   String _value = "";
+  // only used to force the update of the UI
+  bool _isNotifying = false;
 
   List<Widget> _makeButtonContainer() {
     List<Widget> buttonContainers = <Widget>[];
@@ -35,17 +37,12 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
           margin: const EdgeInsets.only(left: 20.0),
           child: ElevatedButton(
             onPressed: () async {
-              var sub = widget.characteristic.value.listen((value) {
-                // remove trailing zeroes
-                var filteredList =
-                    value.where((element) => element != 0).toList();
-                setState(() {
-                  _value = String.fromCharCodes(filteredList);
-                });
+              List<int> value = await widget.characteristic.read();
+              List<int> filteredList =
+                  value.where((element) => element != 0).toList();
+              setState(() {
+                _value = String.fromCharCodes(filteredList);
               });
-
-              await widget.characteristic.read();
-              sub.cancel();
             },
             child: const Text("Read"),
           ),
@@ -59,6 +56,10 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
           child: ElevatedButton(
             onPressed: () async {
               if (!widget.characteristic.isNotifying) {
+                await widget.characteristic.setNotifyValue(true);
+                setState(() {
+                  _isNotifying = widget.characteristic.isNotifying;
+                });
                 widget.characteristic.value.listen((value) {
                   var v = ByteData.sublistView(
                           Uint8List.fromList(value.reversed.toList()))
@@ -67,14 +68,14 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
                     _value = v.toString();
                   });
                 });
-                await widget.characteristic.setNotifyValue(true);
               } else {
                 await widget.characteristic.setNotifyValue(false);
+                setState(() {
+                  _isNotifying = widget.characteristic.isNotifying;
+                });
               }
             },
-            child: Text(widget.characteristic.isNotifying
-                ? 'Stop notification'
-                : 'Notify'),
+            child: Text(_isNotifying ? 'Stop notification' : 'Notify'),
           ),
         ),
       );

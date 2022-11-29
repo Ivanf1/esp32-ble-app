@@ -66,7 +66,8 @@ class _AvailableDeviceListState extends State<AvailableDeviceList> {
       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
       children: widget._devicesList
           .map(
-            (device) => AvailableDeviceConnectionDetails("nameee", "iddddd",
+            (device) => AvailableDeviceConnectionDetails(
+                device.name, device.id.toString(),
                 setSelectedDevice: connectToDevice, device: device),
           )
           .toList(),

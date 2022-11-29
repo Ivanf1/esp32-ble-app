@@ -1,10 +1,9 @@
 import 'package:esp32_ble_mqtt_app/screens/connected_device/components/service_characteristic.dart';
-import 'package:esp32_ble_mqtt_app/types/types.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class ConnectedDevice extends StatefulWidget {
-  final BluetoothDeviceCallback disconnectFromDevice;
+  final VoidCallback disconnectFromDevice;
   final BluetoothDevice device;
 
   const ConnectedDevice(
@@ -18,17 +17,13 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
   List<BluetoothService> _services = [];
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
-    _services = await widget.device.discoverServices();
   }
 
-  void _disconnectDevice() {
-    widget.disconnectFromDevice(widget.device);
-  }
-
-  List<Widget> _buildServicesView() {
+  Future<List<Widget>> _buildServicesView() async {
     final List<Widget> serviceContainers = <Widget>[];
+    _services = await widget.device.discoverServices();
 
     for (BluetoothService service in _services) {
       List<Widget> characteristics = <Widget>[];
@@ -63,19 +58,39 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
       Container(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0),
         child: ElevatedButton(
-          onPressed: () => _disconnectDevice(),
+          onPressed: () => widget.disconnectFromDevice(),
           child: const Text("Disconnect"),
         ),
       ),
     );
 
-    return serviceContainers;
+    return Future.value(serviceContainers);
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      children: _buildServicesView(),
+      children: [
+        FutureBuilder<List<Widget>>(
+          future: _buildServicesView(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (!snapshot.hasData) {
+              return SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: snapshot.data,
+              );
+            }
+          },
+        )
+      ],
     );
   }
 }

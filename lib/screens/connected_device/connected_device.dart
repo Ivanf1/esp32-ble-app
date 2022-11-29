@@ -1,3 +1,4 @@
+import 'package:esp32_ble_mqtt_app/bluetooth_uuid/bluetooth_uuid.dart';
 import 'package:esp32_ble_mqtt_app/screens/connected_device/components/service_characteristic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -48,7 +49,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
 
       serviceContainers.add(
         ExpansionTile(
-          title: Text(service.uuid.toString()),
+          title: Text(bluetoothUUIDToString(service.uuid.toString())),
           children: [...characteristics],
         ),
       );

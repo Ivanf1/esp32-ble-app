@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:esp32_ble_mqtt_app/bluetooth_uuid/bluetooth_uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -100,7 +101,12 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
             Container(
               padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
               child: Row(
-                children: [Text(widget.characteristic.uuid.toString())],
+                children: [
+                  Text(
+                    bluetoothUUIDToString(
+                        widget.characteristic.uuid.toString()),
+                  )
+                ],
               ),
             ),
             Container(

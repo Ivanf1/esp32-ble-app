@@ -20,42 +20,46 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           buttonTheme:
               ButtonThemeData(colorScheme: Theme.of(context).colorScheme)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  MyHomePage({super.key, required this.title});
   final String title;
+  final FlutterBlue flutterBlue = FlutterBlue.instance;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? _connectedDevice;
+  BluetoothDevice? connectedDevice;
 
-  void setConnectedDevice(String deviceName) {
+  void setConnectedDevice(BluetoothDevice? deviceName) {
     setState(() {
-      _connectedDevice = deviceName;
+      connectedDevice = deviceName;
     });
   }
 
-  void disconnectFromDevice() {
+  void disconnectFromDevice() async {
+    await connectedDevice!.disconnect();
     setState(() {
-      _connectedDevice = null;
+      connectedDevice = null;
     });
   }
 
   Widget _buildView() {
-    if (_connectedDevice != null) {
+    if (connectedDevice != null) {
       return ConnectedDevice(
-        disconnectFromDevice: disconnectFromDevice,
+        disconnectFromDevice: setConnectedDevice,
+        device: connectedDevice!,
       );
     } else {
       return AvailableDeviceList(
-        setDeviceName: setConnectedDevice,
+        setDevice: setConnectedDevice,
+        flutterBlue: widget.flutterBlue,
       );
     }
   }

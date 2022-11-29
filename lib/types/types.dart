@@ -1,1 +1,3 @@
-typedef StringCallback = Function(String deviceName);
+import 'package:flutter_blue/flutter_blue.dart';
+
+typedef BluetoothDeviceCallback = Function(BluetoothDevice deviceName);

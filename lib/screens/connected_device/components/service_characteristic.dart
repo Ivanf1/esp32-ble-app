@@ -1,35 +1,25 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 class ServiceCharacteristic extends StatefulWidget {
-  final bool isWritable;
-  final bool isReadable;
-  final bool isNotifiable;
-  final String characteristicUUUID;
+  final BluetoothCharacteristic characteristic;
 
-  const ServiceCharacteristic(
-      {super.key,
-      required this.isWritable,
-      required this.isReadable,
-      required this.isNotifiable,
-      required this.characteristicUUUID});
+  const ServiceCharacteristic({super.key, required this.characteristic});
 
   @override
   State<ServiceCharacteristic> createState() => _ServiceCharacteristicState();
 }
 
 class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
-  bool _isNotifying = false;
   String _value = "";
 
-  void _updateValue(dynamic value) {
-    _value = "$value";
-  }
-
   List<Widget> _makeButtonContainer() {
-    List<Widget> buttonContainer = <Widget>[];
+    List<Widget> buttonContainers = <Widget>[];
 
-    if (widget.isWritable) {
-      buttonContainer.add(
+    if (widget.characteristic.properties.write) {
+      buttonContainers.add(
         Container(
           margin: const EdgeInsets.only(left: 20.0),
           child: ElevatedButton(
@@ -39,34 +29,58 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
         ),
       );
     }
-    if (widget.isReadable) {
-      buttonContainer.add(
+    if (widget.characteristic.properties.read) {
+      buttonContainers.add(
         Container(
           margin: const EdgeInsets.only(left: 20.0),
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () async {
+              var sub = widget.characteristic.value.listen((value) {
+                // remove trailing zeroes
+                var filteredList =
+                    value.where((element) => element != 0).toList();
+                setState(() {
+                  _value = String.fromCharCodes(filteredList);
+                });
+              });
+
+              await widget.characteristic.read();
+              sub.cancel();
+            },
             child: const Text("Read"),
           ),
         ),
       );
     }
-    if (widget.isNotifiable) {
-      buttonContainer.add(
+    if (widget.characteristic.properties.notify) {
+      buttonContainers.add(
         Container(
           margin: const EdgeInsets.only(left: 20.0),
           child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _isNotifying = !_isNotifying;
-              });
+            onPressed: () async {
+              if (!widget.characteristic.isNotifying) {
+                widget.characteristic.value.listen((value) {
+                  var v = ByteData.sublistView(
+                          Uint8List.fromList(value.reversed.toList()))
+                      .getUint32(0);
+                  setState(() {
+                    _value = v.toString();
+                  });
+                });
+                await widget.characteristic.setNotifyValue(true);
+              } else {
+                await widget.characteristic.setNotifyValue(false);
+              }
             },
-            child: Text(_isNotifying ? 'Stop notification' : 'Notify'),
+            child: Text(widget.characteristic.isNotifying
+                ? 'Stop notification'
+                : 'Notify'),
           ),
         ),
       );
     }
 
-    return buttonContainer;
+    return buttonContainers;
   }
 
   @override
@@ -85,7 +99,7 @@ class _ServiceCharacteristicState extends State<ServiceCharacteristic> {
             Container(
               padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
               child: Row(
-                children: [Text(widget.characteristicUUUID)],
+                children: [Text(widget.characteristic.uuid.toString())],
               ),
             ),
             Container(

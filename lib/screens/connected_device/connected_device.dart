@@ -1,17 +1,39 @@
 import 'package:esp32_ble_mqtt_app/screens/connected_device/components/service_characteristic.dart';
+import 'package:esp32_ble_mqtt_app/types/types.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
-class ConnectedDevice extends StatelessWidget {
-  final VoidCallback disconnectFromDevice;
+class ConnectedDevice extends StatefulWidget {
+  final BluetoothDeviceCallback disconnectFromDevice;
+  final BluetoothDevice device;
 
-  const ConnectedDevice({super.key, required this.disconnectFromDevice});
+  const ConnectedDevice(
+      {super.key, required this.disconnectFromDevice, required this.device});
+
+  @override
+  State<ConnectedDevice> createState() => _ConnectedDeviceState();
+}
+
+class _ConnectedDeviceState extends State<ConnectedDevice> {
+  List<BluetoothService> _services = [];
+
+  @override
+  void initState() async {
+    super.initState();
+    _services = await widget.device.discoverServices();
+  }
+
+  void _disconnectDevice() {
+    widget.disconnectFromDevice(widget.device);
+  }
 
   List<Widget> _buildServicesView() {
-    final List<Widget> services = <Widget>[];
-    for (int service = 0; service < 2; service++) {
+    final List<Widget> serviceContainers = <Widget>[];
+
+    for (BluetoothService service in _services) {
       List<Widget> characteristics = <Widget>[];
 
-      for (int characteristic = 0; characteristic < 5; characteristic++) {
+      for (BluetoothCharacteristic characteristic in service.characteristics) {
         characteristics.add(
           Container(
             decoration: const BoxDecoration(
@@ -22,35 +44,32 @@ class ConnectedDevice extends StatelessWidget {
                 ),
               ),
             ),
-            child: const ServiceCharacteristic(
-              isNotifiable: true,
-              isReadable: true,
-              isWritable: true,
-              characteristicUUUID: "bleaasdg",
+            child: ServiceCharacteristic(
+              characteristic: characteristic,
             ),
           ),
         );
       }
 
-      services.add(
+      serviceContainers.add(
         ExpansionTile(
-          title: const Text("Service UUID"),
+          title: Text(service.uuid.toString()),
           children: [...characteristics],
         ),
       );
     }
 
-    services.add(
+    serviceContainers.add(
       Container(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0),
         child: ElevatedButton(
-          onPressed: () => disconnectFromDevice(),
+          onPressed: () => _disconnectDevice(),
           child: const Text("Disconnect"),
         ),
       ),
     );
 
-    return services;
+    return serviceContainers;
   }
 
   @override

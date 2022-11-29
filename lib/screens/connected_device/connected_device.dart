@@ -77,7 +77,7 @@ class _ConnectedDeviceState extends State<ConnectedDevice> {
             if (!snapshot.hasData) {
               return SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
+                height: MediaQuery.of(context).size.height / 1.3,
                 child: const Center(
                   child: CircularProgressIndicator(),
                 ),

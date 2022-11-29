@@ -15,12 +15,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ESP32 BLE MQTT',
       theme: ThemeData(
           primarySwatch: Colors.blue,
           buttonTheme:
               ButtonThemeData(colorScheme: Theme.of(context).colorScheme)),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'ESP32 BLE MQTT'),
     );
   }
 }

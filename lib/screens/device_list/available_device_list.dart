@@ -47,13 +47,17 @@ class _AvailableDeviceListState extends State<AvailableDeviceList> {
         .asStream()
         .listen((List<BluetoothDevice> devices) {
       for (BluetoothDevice device in devices) {
-        _addDeviceToList(device);
+        if (device.name.startsWith("ESP_")) {
+          _addDeviceToList(device);
+        }
       }
     });
 
     widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
       for (ScanResult result in results) {
-        _addDeviceToList(result.device);
+        if (result.device.name.startsWith("ESP_")) {
+          _addDeviceToList(result.device);
+        }
       }
     });
 
